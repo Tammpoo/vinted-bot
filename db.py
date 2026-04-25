@@ -16,7 +16,23 @@ def create_or_update_sqlite_db(sql_file):
     with open(sql_file, "r") as f:
         sql = f.read()
     conn = get_db_connection()
-    conn.executescript(sql)
+    try:
+        conn.executescript(sql)
+    except Exception as e:
+        # Handle duplicate column errors gracefully (SQLite doesn't support IF NOT EXISTS for ALTER TABLE)
+        if "duplicate column name" in str(e):
+            logger.warning(f"Skipping migration {sql_file}: {e} (column already exists)")
+            # Still need to update the version — extract and run only UPDATE statements
+            for line in sql.splitlines():
+                line = line.strip()
+                if line.upper().startswith("UPDATE") or line.upper().startswith("INSERT"):
+                    try:
+                        conn.execute(line.rstrip(";"), [])
+                    except Exception:
+                        pass
+        else:
+            conn.close()
+            raise
     conn.commit()
     conn.close()
 
