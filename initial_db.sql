@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS allowlist (
 );
 
 -- Default configuration
-INSERT OR IGNORE INTO configuration (key, value) VALUES ('version', '1.0.0');
+INSERT OR IGNORE INTO configuration (key, value) VALUES ('version', '1.0.1');
 INSERT OR IGNORE INTO configuration (key, value) VALUES ('telegram_enabled', 'False');
 INSERT OR IGNORE INTO configuration (key, value) VALUES ('telegram_token', '');
 INSERT OR IGNORE INTO configuration (key, value) VALUES ('telegram_chat_id', '');
