@@ -1,18 +1,16 @@
 import multiprocessing
 import time
 import os
+
+# Must be set before any other multiprocessing usage
+if __name__ == "__main__":
+    multiprocessing.set_start_method("spawn", force=True)
+
 import db
 from apscheduler.schedulers.background import BackgroundScheduler
 from logger import get_logger
 
 logger = get_logger(__name__)
-
-# Starting sequence - Db check
-if not os.path.exists("./data/vinted_notifications.db"):
-    logger.info("Database not found, creating a new one.")
-    os.makedirs("./data", exist_ok=True)
-    db.create_or_update_sqlite_db("initial_db.sql")
-    logger.info("Database created successfully")
 
 import core
 from rss_feed_plugin.rss_feed import rss_feed_process
@@ -159,6 +157,13 @@ def plugin_checker():
 
 
 if __name__ == "__main__":
+
+    # Starting sequence - Db check
+    if not os.path.exists("./data/vinted_notifications.db"):
+        logger.info("Database not found, creating a new one.")
+        os.makedirs("./data", exist_ok=True)
+        db.create_or_update_sqlite_db("initial_db.sql")
+        logger.info("Database created successfully")
 
     # Run db migrations
     current_version = db.get_parameter("version")
