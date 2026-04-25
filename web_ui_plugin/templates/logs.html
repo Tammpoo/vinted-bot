@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Log del Sistema</h2>
+    <button onclick="location.reload()" style="margin-bottom: 15px;">Aggiorna</button>
+    {% if logs %}
+    <pre>{{ logs }}</pre>
+    {% else %}
+    <p>Nessun log disponibile.</p>
+    {% endif %}
+</div>
+{% endblock %}

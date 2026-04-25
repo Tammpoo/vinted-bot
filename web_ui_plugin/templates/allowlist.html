@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Gestione Allowlist Paesi</h2>
+    <p style="color: #aaa; margin-bottom: 15px;">
+        L'allowlist ti permette di filtrare gli articoli per paese del venditore.
+        Inserisci i codici paese in formato ISO 3166-1 alpha-2 (es: IT, FR, DE).
+    </p>
+
+    <div style="display: flex; gap: 10px; max-width: 400px;">
+        <input type="text" id="country_code" placeholder="IT" maxlength="2" style="text-transform: uppercase; flex: 1;">
+        <button onclick="addCountry()">Aggiungi</button>
+    </div>
+    <div id="country_result" style="margin-top: 10px;"></div>
+</div>
+
+<div class="card">
+    <h2>Paesi in Allowlist</h2>
+    {% if allowlist %}
+    <table>
+        <thead>
+            <tr><th>Codice</th><th>Azioni</th></tr>
+        </thead>
+        <tbody>
+            {% for country in allowlist %}
+            <tr>
+                <td><strong>{{ country }}</strong></td>
+                <td><button class="btn-danger" onclick="removeCountry('{{ country }}')">Rimuovi</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nessun paese in allowlist. Tutti i paesi sono accettati.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function addCountry() {
+    const code = document.getElementById('country_code').value.trim().toUpperCase();
+    const result = document.getElementById('country_result');
+
+    if (!code || code.length !== 2) {
+        result.innerHTML = '<div class="alert alert-warning">Inserisci un codice paese valido (2 lettere)</div>';
+        return;
+    }
+
+    const response = await apiPost('/api/add_country', { country: code });
+    result.innerHTML = `<div class="alert alert-success">${response.message}</div>`;
+    setTimeout(() => location.reload(), 500);
+}
+
+async function removeCountry(code) {
+    if (!confirm('Rimuovere ' + code + ' dall\'allowlist?')) return;
+    const response = await apiPost('/api/remove_country', { country: code });
+    if (response.success) location.reload();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Configurazione Telegram</h2>
+    <div class="form-group">
+        <label>
+            <input type="checkbox" id="telegram_enabled" {% if config.telegram_enabled %}checked{% endif %}>
+            Abilita notifiche Telegram
+        </label>
+    </div>
+    <div class="form-group">
+        <label>Bot Token</label>
+        <input type="password" id="telegram_token" value="{{ config.telegram_token }}" placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz">
+    </div>
+    <div class="form-group">
+        <label>Chat ID</label>
+        <input type="text" id="telegram_chat_id" value="{{ config.telegram_chat_id }}" placeholder="123456789">
+    </div>
+</div>
+
+<div class="card">
+    <h2>Configurazione RSS</h2>
+    <div class="form-group">
+        <label>
+            <input type="checkbox" id="rss_enabled" {% if config.rss_enabled %}checked{% endif %}>
+            Abilita Feed RSS
+        </label>
+    </div>
+    <p style="color: #aaa;">Il feed RSS è disponibile su <a href="http://localhost:8080" style="color: #00d4aa;">:8080</a></p>
+</div>
+
+<div class="card">
+    <h2>Configurazione Monitoraggio</h2>
+    <div class="form-group">
+        <label>Intervallo aggiornamento (secondi)</label>
+        <input type="number" id="query_refresh_delay" value="{{ config.query_refresh_delay }}" min="10">
+    </div>
+    <div class="form-group">
+        <label>Articoli per query</label>
+        <input type="number" id="items_per_query" value="{{ config.items_per_query }}" min="5" max="100">
+    </div>
+</div>
+
+<div class="card">
+    <h2>Template Messaggio</h2>
+    <div class="form-group">
+        <label>Template (usa {title}, {price}, {brand})</label>
+        <textarea id="message_template" rows="4">{{ config.message_template }}</textarea>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Parole Vietate (Banwords)</h2>
+    <div class="form-group">
+        <label>Parole da escludere (separate da |||)</label>
+        <input type="text" id="banwords" value="{{ config.banwords }}" placeholder="finto|||contraffazione|||fake">
+    </div>
+</div>
+
+<div class="card">
+    <h2>Proxy (opzionale)</h2>
+    <div class="form-group">
+        <label>Lista proxy (uno per riga, formato: http://ip:port)</label>
+        <textarea id="proxies" rows="4" placeholder="http://123.45.67.89:8080">{{ config.proxies }}</textarea>
+    </div>
+</div>
+
+<button onclick="saveConfig()" style="margin-bottom: 30px;">Salva Configurazione</button>
+<div id="config_result"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function saveConfig() {
+    const config = {
+        telegram_enabled: document.getElementById('telegram_enabled').checked.toString(),
+        telegram_token: document.getElementById('telegram_token').value,
+        telegram_chat_id: document.getElementById('telegram_chat_id').value,
+        rss_enabled: document.getElementById('rss_enabled').checked.toString(),
+        query_refresh_delay: document.getElementById('query_refresh_delay').value,
+        items_per_query: document.getElementById('items_per_query').value,
+        message_template: document.getElementById('message_template').value,
+        banwords: document.getElementById('banwords').value,
+        proxies: document.getElementById('proxies').value,
+    };
+
+    const response = await apiPost('/api/update_config', config);
+    const result = document.getElementById('config_result');
+    result.innerHTML = `<div class="alert ${response.success ? 'alert-success' : 'alert-warning'}">${response.message}</div>`;
+}
+</script>
+{% endblock %}

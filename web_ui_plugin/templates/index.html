@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid">
+    <div class="card">
+        <h2>Stato Servizi</h2>
+        <table>
+            <tr>
+                <td>Telegram</td>
+                <td><span class="status {{ 'active' if config.telegram_enabled else 'inactive' }}">{{ 'Attivo' if config.telegram_enabled else 'Disattivo' }}</span></td>
+            </tr>
+            <tr>
+                <td>RSS Feed</td>
+                <td><span class="status {{ 'active' if config.rss_enabled else 'inactive' }}">{{ 'Attivo' if config.rss_enabled else 'Disattivo' }}</span></td>
+            </tr>
+            <tr>
+                <td>Query Monitorate</td>
+                <td>{{ queries|length }}</td>
+            </tr>
+            <tr>
+                <td>Articoli Trovati</td>
+                <td>{{ items|length }}</td>
+            </tr>
+            <tr>
+                <td>Refresh Delay</td>
+                <td>{{ config.query_refresh_delay }} secondi</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Aggiungi Query</h2>
+        <div class="form-group">
+            <label>URL Vinted</label>
+            <input type="text" id="query_url" placeholder="https://www.vinted.it/catalog?search_text=nike...">
+        </div>
+        <div class="form-group">
+            <label>Nome (opzionale)</label>
+            <input type="text" id="query_name" placeholder="Ricerca Nike">
+        </div>
+        <button onclick="addQuery()">Aggiungi</button>
+        <div id="query_result" style="margin-top: 10px;"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Query Attive</h2>
+    {% if queries %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>Query</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for query in queries %}
+            <tr>
+                <td>{{ query.id }}</td>
+                <td>{{ query.name or '-' }}</td>
+                <td><a href="{{ query.query }}" target="_blank" style="color: #00d4aa;">{{ query.query[:80] }}...</a></td>
+                <td><button class="btn-danger" onclick="removeQuery({{ query.id }})">Rimuovi</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nessuna query configurata. Aggiungine una dalla sezione Query.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Ultimi Articoli</h2>
+    {% if items %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+        {% for item in items[:8] %}
+        <div class="item-card">
+            {% if item.photo_url %}
+            <img src="{{ item.photo_url }}" alt="{{ item.title }}">
+            {% endif %}
+            <div class="title">{{ item.title[:50] }}</div>
+            <div class="price">{{ item.price }} {{ item.currency }}</div>
+            <a href="https://www.vinted.it/items/{{ item.id }}" target="_blank">Vedi su Vinted</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Nessun articolo trovato ancora.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function addQuery() {
+    const url = document.getElementById('query_url').value;
+    const name = document.getElementById('query_name').value;
+    const result = document.getElementById('query_result');
+
+    if (!url) {
+        result.innerHTML = '<div class="alert alert-warning">Inserisci un URL Vinted</div>';
+        return;
+    }
+
+    const response = await apiPost('/api/add_query', { query: url, name: name || null });
+    result.innerHTML = `<div class="alert ${response.success ? 'alert-success' : 'alert-info'}">${response.message}</div>`;
+
+    if (response.success) {
+        document.getElementById('query_url').value = '';
+        document.getElementById('query_name').value = '';
+        setTimeout(() => location.reload(), 1000);
+    }
+}
+
+async function removeQuery(id) {
+    if (!confirm('Sei sicuro di voler rimuovere questa query?')) return;
+    const response = await apiPost('/api/remove_query', { id: id });
+    if (response.success) location.reload();
+}
+</script>
+{% endblock %}

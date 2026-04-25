@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Articoli Trovati</h2>
+    <div class="form-group" style="max-width: 300px;">
+        <label>Filtra per Query</label>
+        <select onchange="filterByQuery(this.value)">
+            <option value="">Tutte</option>
+            {% for query in queries %}
+            <option value="{{ query.id }}" {% if request.args.get('query_id')|int == query.id %}selected{% endif %}>{{ query.name or 'Query ' + query.id|string }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% if items %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+        {% for item in items %}
+        <div class="item-card">
+            {% if item.photo_url %}
+            <img src="{{ item.photo_url }}" alt="{{ item.title }}" style="width: 100%; border-radius: 4px; margin-bottom: 10px;">
+            {% endif %}
+            <div class="title">{{ item.title[:60] }}</div>
+            <div class="price">{{ item.price }} {{ item.currency }}</div>
+            <div style="margin-top: 8px;">
+                <a href="https://www.vinted.it/items/{{ item.id }}" target="_blank" style="color: #00d4aa; font-size: 0.9em;">Vedi su Vinted</a>
+            </div>
+            <div style="color: #666; font-size: 0.8em; margin-top: 5px;">ID: {{ item.id }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Nessun articolo trovato.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterByQuery(queryId) {
+    if (queryId) {
+        window.location.href = '/items?query_id=' + queryId;
+    } else {
+        window.location.href = '/items';
+    }
+}
+</script>
+{% endblock %}
