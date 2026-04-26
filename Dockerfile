@@ -12,6 +12,9 @@ RUN mkdir -p /app/data /app/logs && chown -R appuser:appuser /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Force cache bust to pick up latest code
+ARG CACHEBUST=1
+
 # Copy the rest of the application
 COPY . .
 
